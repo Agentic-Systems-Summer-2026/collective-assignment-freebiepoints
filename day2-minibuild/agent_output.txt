@@ -1,0 +1,14 @@
+**Action Items:**
+Task: Call the landlord about the lease addendum | Owner: Maya | Deadline: Thursday
+Task: Fix the budget spreadsheet formulas | Owner: Devon | Deadline: MISSING
+Task: Send the updated menu draft to the printer | Owner: Priya | Deadline: Friday
+Task: Schedule the health inspection | Owner: MISSING | Deadline: MISSING
+Task: Confirm the espresso machine delivery window with the vendor | Owner: Sam | Deadline: end of week
+
+**Missing Information:**
+- Devon's deadline for fixing budget spreadsheet is missing
+- Health inspection scheduling owner is missing
+- Health inspection deadline is missing
+
+**Status Summary:**
+The Riverbend Cafe expansion project continues with key tasks assigned to Maya, Priya, and Sam. Several action items remain pending due to missing deadlines or ownership assignments, particularly regarding the budget spreadsheet and health inspection scheduling. The team needs to address these gaps promptly to maintain project momentum toward the upcoming deadline.

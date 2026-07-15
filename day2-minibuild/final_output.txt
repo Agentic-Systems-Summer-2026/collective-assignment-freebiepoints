@@ -1,0 +1,13 @@
+Action Items:
+1. Maya will call the landlord about the lease addendum by Thursday
+2. Devon said he'd fix the formulas but gave no date (Budget spreadsheet still broken)
+3. Priya to send the updated menu draft to the printer by Friday
+4. We still need someone to schedule the health inspection (nobody volunteered, left open)
+5. Sam: confirm the espresso machine delivery window with the vendor before end of week
+
+Flagged Items:
+2. Devon said he'd fix the formulas but gave no date (Budget spreadsheet still broken) | Owner: MISSING | Deadline: MISSING
+4. We still need someone to schedule the health inspection (nobody volunteered, left open) | Owner: MISSING | Deadline: MISSING
+
+Status Summary:
+The team has several action items with clear owners and deadlines, particularly around the new location setup. However, two items remain unassigned with missing ownership and deadlines, requiring further coordination. The team should prioritize identifying owners for the remaining tasks and setting clear deadlines to ensure project progression.

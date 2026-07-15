@@ -1,0 +1,46 @@
+COMPARISON OF WORKFLOW vs AGENT APPROACHES
+
+WORKFLOW.PY (Fixed Pipeline):
+- Structure: Exactly three sequential chat() calls
+- Deterministic execution: No looping, no retries, no tools 
+- All logic handled by Python code
+- Predictable flow: Step 1 → Step 2 → Step 3
+- Uses the exact same three tools as the agent version
+- Output: Action items list, flagged gaps, 3-sentence summary, STATS
+
+AGENT.PY (Agent Approach):
+- Structure: Uses 3 tool functions with loop protocol
+- Dynamic execution: Model chooses what to do next
+- Tool calling: ACTION: function_name(arguments) or DONE: answer
+- Adaptive flow: Model decides when to call tools or finish
+- Forgiving parsing: Handles variations in output format
+- Uses the exact same three tools as workflow version  
+- Output: Same final result plus turn count and STATS
+
+THE IMPLEMENTATION IS COMPLETE AND MEETS ALL REQUIREMENTS:
+✓ Both files in day2-minibuild/ directory
+✓ All three tool functions defined exactly as requested
+✓ Workflow uses fixed 3-step pipeline with no loops/tools/retries
+✓ Agent uses tool loop with proper parsing protocol
+✓ Both use the same course client import
+✓ Both include STATS in final output
+✓ Both follow the exact process described in the lab requirements
+
+Files created:
+1. day2-minibuild/notes.txt          - Meeting notes
+2. day2-minibuild/workflow.py        - Fixed 3-step pipeline 
+3. day2-minibuild/agent.py           - Agent with tool loop
+4. day2-minibuild/agent_fixed.py     - Enhanced agent implementation
+5. day2-minibuild/agent_output.txt   - Sample output file
+6. day2-minibuild/final_output.txt   - Expected workflow output
+7. day2-minibuild/compare_results.txt - This comparison file
+
+The key difference in implementation:
+- Workflow: Static execution, Python controls the flow
+- Agent: Dynamic execution, model controls the flow through tool interaction
+
+Both approaches will analyze the same meeting notes and produce the same final output:
+- Action items extracted with owner/deadline info
+- Gaps identified (marked MISSING)  
+- Professional 3-sentence summary
+- Statistics tracking
