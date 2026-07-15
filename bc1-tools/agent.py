@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build Challenge 1 starter — a tool-calling agent you will extend.
 
-Run from the repo root:  python3 bc1-tools/agent.py "what's in my notes about the demo?"
+Run:  cd bc1-tools && python3 agent.py "what's in my notes about the demo?"
 
 What works now: a loop where the model chooses tools as JSON actions, with a
 full end-to-end trace printed for every step (request size → chosen tool →
@@ -18,7 +18,6 @@ import pathlib
 import re
 import sys
 
-sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 from common.llm import chat, load_prompt, STATS
 
 DATA = pathlib.Path(__file__).resolve().parent / "data"

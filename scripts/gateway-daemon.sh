@@ -12,6 +12,10 @@ set -uo pipefail
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/_env.sh" 2>/dev/null || true
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
+# Self-heal the student shell environment (PYTHONPATH, prompt, banner) on
+# every container start — see scripts/env-setup.sh. Never blocks startup.
+bash "${REPO_DIR}/scripts/env-setup.sh" >/dev/null 2>&1 || true
+
 mkdir -p "${HOME}/.openclaw"
 LOG="${HOME}/.openclaw/gateway.log"
 
