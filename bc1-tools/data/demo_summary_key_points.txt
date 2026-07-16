@@ -1,0 +1,1 @@
+Capstone demo: Helpdesk ticket triage agent. Key points: Human approval gates, keyword-only retrieval due to OpenRouter constraints, live run with visible trace, 8-minute time limit. Developed in Codespace starter environment.

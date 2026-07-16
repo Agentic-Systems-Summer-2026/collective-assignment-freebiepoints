@@ -1,0 +1,8 @@
+Based on my notes, the capstone demo will be a helpdesk ticket triage agent. Key details:
+
+- Focus: Helpdesk ticket triage with human approval gates
+- Constraints: No embedding endpoint on OpenRouter, so retrieval is keyword-only
+- Requirements: Live run, visible trace, rollback story
+- Time constraint: Should fit in eight minutes
+
+The demo is being developed using the Codespace starter environment.

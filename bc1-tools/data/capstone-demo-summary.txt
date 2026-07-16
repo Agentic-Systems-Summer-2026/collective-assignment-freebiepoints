@@ -1,0 +1,1 @@
+Capstone demo idea: a triage agent for the helpdesk queue. Blocker: no embedding endpoint on OpenRouter, so retrieval work is keyword-only for now.
