@@ -10,8 +10,8 @@ in `data/`, printing a full trace each step. One tool
 (`search_notes_verbose`) is deliberately wasteful.
 
 **Acceptance check.**
-- `python3 bc1-tools/agent.py "<your task>"` completes using at least one of
-  YOUR tools, chosen by the model (not hard-coded).
+- `cd bc1-tools && python3 agent.py "<your task>"` completes using at least
+  one of YOUR tools, chosen by the model (not hard-coded).
 - Your write-up includes one full trace and a before/after comparison of the
   wasteful vs. token-efficient tool (use `STATS` — calls, tokens).
 - System prompt changes are in `prompts/` with `PROMPTS.md` entries.
