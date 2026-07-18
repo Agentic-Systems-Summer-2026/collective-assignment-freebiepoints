@@ -50,7 +50,7 @@ What I had to correct in code my agent wrote (AI-use disclosure — expected, no
 
 ---
 
-## Day 3 — <build name>
+## Day 3 — BC 1
 - **What I built:** Extended the starter agent.py with three new tools: word_count        
   (returns word and char counts for one note or all notes), search_notes_snippet      
   (token-efficient search returning only matching lines with file and line number     
@@ -76,3 +76,20 @@ What I had to correct in code my agent wrote (AI-use disclosure — expected, no
   search_notes_verbose from step 1 of the first run — the tool description and system 
   prompt nudge were enough. Before/after on the "capstone demo" query: verbose        
   returned 517 chars, snippet returned 347 chars (33% smaller)
+
+  ## Day 5 — BC2 Context & Prompt Design
+- **What I built:** Built fixed_task.py based off overload_task.py, but using JIT 
+  keyword extraction to create a list of relative keywords, and compaction to reduce the 
+  context to only the most relevant documents. Created bc2-retriever.txt prompt 
+  for running keyword-filter tool, and modified bc2-analyst to include policy status 
+  rules so stale policies are ignored.
+- **What failed:** fixed_task.py would find the relevant policies AS-17 and AS-18, but
+  would not find policy AS-24 (read-only creds/data-owner sign-off).
+- **What I changed:** Expanded the amount of relevant keywords for bc2-retriever and 
+  set an explicit answer format for bc2-analyst to help ensure all parts of the policy
+  question are addressed
+- **Where AI helped, and how I verified its output:** I prompted the AI to build 
+  fixed_task.py based on overload_task.py, but to include a filter tool and use the principles
+  of JIT and compaction to improve the agent's performance. I validated it's output in 
+  fixed_task.py, read and clarified the new and modified prompt files, and ran the new task
+  to verify the improved performance.
