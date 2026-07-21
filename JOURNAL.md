@@ -77,7 +77,7 @@ What I had to correct in code my agent wrote (AI-use disclosure — expected, no
   prompt nudge were enough. Before/after on the "capstone demo" query: verbose        
   returned 517 chars, snippet returned 347 chars (33% smaller)
 
-  ## Day 5 — BC2 Context & Prompt Design
+## Day 5 — BC2 Context & Prompt Design
 - **What I built:** Built fixed_task.py based off overload_task.py, but using JIT 
   keyword extraction to create a list of relative keywords, and compaction to reduce the 
   context to only the most relevant documents. Created bc2-retriever.txt prompt 
@@ -93,3 +93,13 @@ What I had to correct in code my agent wrote (AI-use disclosure — expected, no
   of JIT and compaction to improve the agent's performance. I validated it's output in 
   fixed_task.py, read and clarified the new and modified prompt files, and ran the new task
   to verify the improved performance.
+---
+
+## Day 7 — BC3 Reliability & Rollback
+- **What I built:** Diagnosed six reliability flaws in `broken_agent.py`, then built `fixed_agent.py` with retries/timeouts via `common.llm.chat()`, a `parse_verdict()` helper that strips markdown fences and validates JSON, staged atomic writes to protect the last good report, a `checkpoint.json` that survives a kill/restart without re-spending tokens, explicit failure logging to stderr, and an honest exit banner that exits non-zero when any item fails. Captured both recovery demos as asciinema recordings (`bc3-recovery-a.cast`, `bc3-recovery-b.cast`).
+
+- **What failed:** The first asciinema recording for Demo A cut off early because `set -e` in the demo script caused the shell to exit when the background agent process was killed — the recording ended right at the kill instead of continuing to show the resume. Re-recorded after removing `set -e`. Also hit a minor environment issue during the timeout test: `nc` wasn't available in the Codespace, so we switched to a Python socket server to simulate the hanging endpoint.
+
+- **What I changed:** Kept `broken_agent.py` untouched as the "before" artifact. Built `fixed_agent.py` from scratch addressing all six flaws per the plan. Added `demo_a.sh` and `demo_b.sh` as reproducible test harnesses for the two recovery scenarios. Committed both `.cast` files alongside the code.
+
+- **Where AI helped, and how I verified its output:** The AI did the majority of the flaw testing and code writing. It designed the mock harnesses, identified the `set -e` issue, and built `fixed_agent.py` and both demo scripts. I steered the process at each phase — the AI initially wanted to move straight into building, but I made sure we diagnosed all flaws first, planned each fix explicitly, reviewed the plan before any code was written, and verified each test result before moving to the next. One thing that surprised me: after Demo A, the final report only showed 3 approved items instead of the expected 4. CR-102 had been checkpointed as done before the kill, but the staged `.tmp` file hadn't been atomically renamed yet when the process was killed — so it didn't appear in the final report. After thinking it through I agreed this is correct behavior: the staging mechanism prioritizes report integrity over completeness, which is the right tradeoff.
