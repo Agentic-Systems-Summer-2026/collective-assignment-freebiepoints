@@ -18,4 +18,9 @@ npm-debug.log*
 __pycache__/
 *.pyc
 
+# bc3 generated artifacts
+bc3-reliability/approved_report.md
+bc3-reliability/approved_report.md.tmp
+bc3-reliability/checkpoint.json
+
 .fake
