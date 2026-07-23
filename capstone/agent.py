@@ -80,6 +80,28 @@ TOOL_MAP = {
     "get_commit_diff_summary": get_commit_diff_summary
 }
 
+
+def _extract_action_dict(text: str) -> dict:
+    """Parse the first JSON object from model text; return {} on failure."""
+    if not isinstance(text, str):
+        return {}
+
+    fenced = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", text, re.DOTALL)
+    if fenced:
+        candidate = fenced.group(1)
+    else:
+        block = re.search(r"\{.*\}", text, re.DOTALL)
+        candidate = block.group(0) if block else ""
+
+    if not candidate:
+        return {}
+
+    try:
+        parsed = json.loads(candidate)
+        return parsed if isinstance(parsed, dict) else {}
+    except json.JSONDecodeError:
+        return {}
+
 # ==========================================
 # 4. ORCHESTRATOR LOOP (State Management)
 # ==========================================
@@ -91,7 +113,13 @@ def run_agent_slice(commit_hash: str, commit_message: str):
         "You are the Context Triage Agent. Your job is to gather all necessary context "
         "for a code commit so the downstream writers can generate release notes. "
         "If a commit references a ticket, look it up. If you need to see what files changed, check the diff summary. "
-        "Once you have gathered the context, output a final summary of what happened."
+        "Once you have gathered the context, output a final summary of what happened.\n\n"
+        "You must respond with exactly one JSON object per turn and no extra prose.\n"
+        "Allowed tool calls:\n"
+        "1) {\"action\":\"tool\",\"tool\":\"mock_issue_lookup\",\"arguments\":{\"ticket_id\":\"PROJ-404\"}}\n"
+        "2) {\"action\":\"tool\",\"tool\":\"get_commit_diff_summary\",\"arguments\":{\"commit_hash\":\"a1b2c3\"}}\n"
+        "Final answer format:\n"
+        "{\"action\":\"final\",\"summary\":\"<brief synthesis>\"}"
     )
     
     messages = [
@@ -103,47 +131,53 @@ def run_agent_slice(commit_hash: str, commit_message: str):
     
     MAX_LOOPS = 3
     loop_count = 0
+    completed = False
     
     # Agentic Execution Loop
     while loop_count < MAX_LOOPS:
         loop_count += 1
         print(f"\n--- 🔄 Loop {loop_count} ---")
         
-        # Call the LLM (Using your course's common.llm wrapper)
-        response = chat(messages=messages, tools=tools)
-        
-        # Check if the LLM wants to call a tool
-        if hasattr(response, 'tool_calls') and response.tool_calls:
-            for tool_call in response.tool_calls:
-                tool_name = tool_call.name
-                tool_args = json.loads(tool_call.arguments)
-                
-                print(f"🛠️  LLM selected tool: {tool_name}")
-                print(f"📥 Arguments passed: {tool_args}")
-                
-                # Execute the tool
-                if tool_name in TOOL_MAP:
-                    result = TOOL_MAP[tool_name](**tool_args)
-                    print(f"📤 Tool result: {result}")
-                    
-                    # Append the tool's output back to the state (message history)
-                    messages.append(response.message) # Append the assistant's request
-                    messages.append({
-                        "role": "tool",
-                        "name": tool_name,
-                        "content": result,
-                        "tool_call_id": tool_call.id 
-                    })
-                else:
-                    print(f"❌ Unknown tool requested: {tool_name}")
-                    break
-        else:
-            # If no tools are called, the agent has reached its final answer
+        # Call the LLM (course wrapper returns assistant text)
+        response_text = chat(messages=messages)
+        print(f"🤖 Raw model response: {response_text}")
+
+        action = _extract_action_dict(response_text)
+        if not action:
+            print("❌ Could not parse model JSON action. Stopping.")
+            break
+
+        action_type = action.get("action")
+        if action_type == "tool":
+            tool_name = action.get("tool", "")
+            tool_args = action.get("arguments", {})
+
+            print(f"🛠️  LLM selected tool: {tool_name}")
+            print(f"📥 Arguments passed: {tool_args}")
+
+            if tool_name in TOOL_MAP and isinstance(tool_args, dict):
+                result = TOOL_MAP[tool_name](**tool_args)
+                print(f"📤 Tool result: {result}")
+
+                # Append request + observation back into conversation state.
+                messages.append({"role": "assistant", "content": response_text})
+                messages.append({
+                    "role": "user",
+                    "content": f"TOOL_RESULT {tool_name}: {result}"
+                })
+            else:
+                print(f"❌ Unknown tool or invalid args: {tool_name}")
+                break
+        elif action_type == "final":
             print("\n✅ Final Synthesis Reached:")
-            print(response.content)
+            print(action.get("summary", ""))
+            completed = True
+            break
+        else:
+            print(f"❌ Unknown action type: {action_type}")
             break
             
-    if loop_count == MAX_LOOPS:
+    if loop_count == MAX_LOOPS and not completed:
         print("\n⚠️ Max loops reached. Terminating to prevent infinite execution.")
 
 # ==========================================
