@@ -24,3 +24,5 @@ bc3-reliability/approved_report.md.tmp
 bc3-reliability/checkpoint.json
 
 .fake
+# Local Netlify folder
+.netlify
