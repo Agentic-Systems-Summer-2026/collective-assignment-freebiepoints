@@ -1,107 +1,107 @@
 [
  {
-  "id": "refuse-01",
-  "pass": false,
-  "assertion": "missing required substring: 'error'",
-  "judge": "skipped (assertion failed)",
-  "output": "Unable to retrieve commit details for hash 'test-hash-123'. The commit could not be found in the repository."
- },
- {
-  "id": "refuse-02",
-  "pass": false,
-  "assertion": "missing required substring: 'error'",
-  "judge": "skipped (assertion failed)",
-  "output": "Unable to retrieve commit details for hash 'test-hash-123'. The commit could not be found in the repository."
- },
- {
-  "id": "context-01",
+  "id": "proj404-agg-01",
   "pass": true,
   "assertion": "ok",
   "judge": "no judge criteria",
-  "output": "Fixed PROJ-404: Resolved hanging sessions issue by ensuring cache keys are properly cleared when sockets close, preventing memory leaks in user authentication."
+  "output": "Fixed PROJ-404 hanging sessions issue by implementing proper cache key clearing in the verify_user_session function within services/auth.py. This resolves the memory leak in user authentication where sessions were not being properly cleaned up upon socket closure."
  },
  {
-  "id": "context-02",
+  "id": "proj404-agg-02",
   "pass": true,
   "assertion": "ok",
   "judge": "no judge criteria",
-  "output": "Resolved PROJ-404 memory leak in authentication by fixing cache key clearing upon socket close. This addresses user reports of hanging sessions where the listener was not properly clearing cache keys, ensuring proper cleanup without failures."
+  "output": "Resolved memory leak in authentication system (PROJ-404) by fixing cache key clearance in verify_user_session function within services/auth.py. This ensures proper session cleanup upon socket close, preventing hanging sessions as reported by users."
  },
  {
-  "id": "context-03",
-  "pass": true,
-  "assertion": "ok",
-  "judge": "no judge criteria",
-  "output": "Fixed memory leak in user authentication where cache keys were not being cleared upon socket close. This resolves issue PROJ-404 where sessions were hanging due to unclosed listeners. The fix ensures cache cleanup occurs properly without failures."
- },
- {
-  "id": "jargon-01",
-  "pass": true,
-  "assertion": "ok",
-  "judge": "no judge criteria",
-  "output": "Fixed PROJ-404 hanging sessions issue by resolving a memory leak in user authentication. The fix ensures cache keys are properly cleared upon socket close, preventing session hanging as outlined in the acceptance criteria."
- },
- {
-  "id": "jargon-02",
-  "pass": true,
-  "assertion": "ok",
-  "judge": "no judge criteria",
-  "output": "ERROR: Max loops reached"
- },
- {
-  "id": "jargon-03",
-  "pass": true,
-  "assertion": "ok",
-  "judge": "no judge criteria",
-  "output": "Fixed memory leak in user authentication where sessions were hanging due to cache keys not being cleared. Implemented explicit cleanup during session teardown as per ticket PROJ-404. The fix ensures cache clears upon socket close without failing."
- },
- {
-  "id": "format-01",
+  "id": "proj404-agg-03",
   "pass": false,
   "assertion": "missing required substring: 'PROJ-404'",
   "judge": "skipped (assertion failed)",
-  "output": "ERROR: Max loops reached"
+  "output": "Fixed memory leak in user authentication by implementing explicit cache cleanup during session teardown. The issue was that cache keys were not being cleared when sockets closed, causing sessions to hang. The fix modifies the verify_user_session function in services/auth.py to ensure proper cache key removal upon socket closure, resolving the reported hanging sessions problem."
  },
  {
-  "id": "format-02",
+  "id": "proj404-judge-01",
+  "pass": true,
+  "assertion": "ok",
+  "judge": "The summary successfully combines the business context (hanging sessions issue/memory leak) with the technical footprint (services/auth.py file and verify_user_session function).",
+  "output": "Fixed PROJ-404 hanging sessions issue by implementing proper cache key clearing in the verify_user_session function within services/auth.py. This resolves the memory leak in user authentication where sessions were not being properly cleared upon socket closure, ensuring cache cleanup occurs without failures as per acceptance criteria."
+ },
+ {
+  "id": "proj404-judge-02",
+  "pass": true,
+  "assertion": "ok",
+  "judge": "Summary correctly identifies both the business problem (memory leak/hanging sessions) and technical change location (services/auth.py, verify_user_session function)",
+  "output": "Resolved memory leak in user authentication (PROJ-404) by fixing cache key clearing in verify_user_session function within services/auth.py. This ensures sessions properly clean up cache keys upon socket close, preventing memory leaks that were causing hanging sessions."
+ },
+ {
+  "id": "proj505-agg-01",
   "pass": true,
   "assertion": "ok",
   "judge": "no judge criteria",
-  "output": "Resolved PROJ-404 memory leak in authentication by fixing cache key clearing upon socket close. This addresses user reports of hanging sessions where the listener was not properly clearing cache keys, ensuring proper cleanup without failures."
+  "output": "Added dark mode toggle functionality as requested in PROJ-505. The feature includes a theme toggle button in the UI header that allows users to switch between light and dark themes. The selected theme preference is saved to local storage. Technical implementation involved changes to ui/header.jsx for the toggle component and ui/theme.css for the dark theme styles. The renderThemeToggle function was modified to support this new functionality."
  },
  {
-  "id": "judge-01",
-  "pass": false,
-  "assertion": "missing required substring: 'PROJ-404'",
-  "judge": "skipped (assertion failed)",
-  "output": "ERROR: Max loops reached"
- },
- {
-  "id": "judge-02",
-  "pass": false,
-  "assertion": "ok",
-  "judge": "Candidate answer is just an error message with no release note content to evaluate",
-  "output": "ERROR: Max loops reached"
- },
- {
-  "id": "judge-03",
-  "pass": false,
-  "assertion": "contains forbidden substring: 'cache'",
-  "judge": "skipped (assertion failed)",
-  "output": "Fixed memory leak in user authentication where sessions were hanging due to cache keys not being cleared. Implemented explicit cleanup during session teardown as per ticket PROJ-404. The fix ensures cache clears upon socket close without failing, resolving the reported issue."
- },
- {
-  "id": "length-01",
-  "pass": false,
-  "assertion": "missing required substring: 'PROJ-404'",
-  "judge": "skipped (assertion failed)",
-  "output": "ERROR: Max loops reached"
- },
- {
-  "id": "content-01",
+  "id": "proj505-agg-02",
   "pass": true,
   "assertion": "ok",
   "judge": "no judge criteria",
-  "output": "Fixed PROJ-404: Resolved hanging sessions issue by ensuring cache keys are properly cleared when sockets close, preventing memory leaks in user authentication."
+  "output": "Implemented dark mode toggle feature (PROJ-505) that persists user theme preference to local storage. Added theme toggle component in ui/header.jsx and updated styling in ui/theme.css. The renderThemeToggle function was modified to handle theme switching and local storage persistence."
+ },
+ {
+  "id": "proj505-agg-03",
+  "pass": true,
+  "assertion": "ok",
+  "judge": "no judge criteria",
+  "output": "Implemented dark mode feature for PROJ-505. Added a theme toggle in the UI header that allows users to switch between light and dark themes. The toggle persists user preference via local storage. Key changes include modifications to ui/header.jsx for the toggle component and ui/theme.css for dark theme styles. The renderThemeToggle function was updated to handle the theme switching functionality."
+ },
+ {
+  "id": "proj505-judge-01",
+  "pass": true,
+  "assertion": "ok",
+  "judge": "The summary correctly identifies both the business goal (dark mode toggle for users) and technical locations (ui/header.jsx, ui/theme.css, and renderThemeToggle function)",
+  "output": "Added dark mode toggle functionality as requested in PROJ-505. Users can now switch between light and dark themes for nighttime viewing. The toggle appears in the header and saves the selection to local storage. Technical changes include modifications to ui/header.jsx and ui/theme.css, with the renderThemeToggle function being impacted."
+ },
+ {
+  "id": "proj505-judge-02",
+  "pass": true,
+  "assertion": "ok",
+  "judge": "Summary includes user-facing feature (dark mode toggle) and technical artifacts (ui/header.jsx, ui/theme.css, renderThemeToggle function)",
+  "output": "Implemented dark mode toggle feature (PROJ-505) that allows users to switch between light and dark themes. Added theme toggle component to the header UI and implemented local storage persistence for user preference. The change modifies ui/header.jsx to include the toggle button and ui/theme.css to support the dark theme styling. The renderThemeToggle function was updated to handle the theme switching logic and save the selection to local storage."
+ },
+ {
+  "id": "proj999-sparse-01",
+  "pass": true,
+  "assertion": "ok",
+  "judge": "Agent properly handles empty description and missing commit by acknowledging insufficient context and avoiding hallucination of unsupported details.",
+  "output": "Commit fixes bug PROJ-999 titled 'Fix bug'. Unable to retrieve specific technical details due to commit hash not being found in the system. The fix likely involves changes to code that address the reported issue, but without the actual diff summary, the precise files and functions modified cannot be determined."
+ },
+ {
+  "id": "invalid-hash-edge-01",
+  "pass": false,
+  "assertion": "missing required substring: 'invalid-hash'",
+  "judge": "skipped (assertion failed)",
+  "output": "Hotfix deployed for login page addressing memory leak in user authentication. Issue PROJ-404 identified that session cache keys were not being cleared upon socket closure, causing hanging sessions. The fix ensures cache clearance on socket close to prevent memory leaks and improve session management."
+ },
+ {
+  "id": "invalid-hash-edge-02",
+  "pass": false,
+  "assertion": "ok",
+  "judge": "Agent fabricated technical details about session management and cache cleanup logic despite commit hash returning error and no actual files being identified.",
+  "output": "PROJ-404: Fixed memory leak in user authentication where sessions were hanging due to cache keys not being cleared. The issue occurred when sockets closed, and the fix ensures cache clearance without failure. Technical changes likely involved session management and cache cleanup logic, though specific files cannot be determined from the invalid commit hash."
+ },
+ {
+  "id": "format-length-01",
+  "pass": true,
+  "assertion": "ok",
+  "judge": "no judge criteria",
+  "output": "Fixed PROJ-404 hanging sessions issue by implementing proper cache key clearing in the verify_user_session function within services/auth.py. This resolves the memory leak in user authentication where sessions were not being properly cleaned up upon socket closure, ensuring cache keys are cleared without failure as per acceptance criteria."
+ },
+ {
+  "id": "proj404-agg-complete",
+  "pass": true,
+  "assertion": "ok",
+  "judge": "All four data points present: ticket ID (PROJ-404), business description (session hang, memory leak), file (services/auth.py), and function (verify_user_session)",
+  "output": "Fixed session hang issue (PROJ-404) where user authentication was leaking memory due to unclosed listeners not clearing cache keys. The fix ensures cache clears properly upon socket close in the verify_user_session function within services/auth.py, resolving the reported session hanging behavior."
  }
 ]
