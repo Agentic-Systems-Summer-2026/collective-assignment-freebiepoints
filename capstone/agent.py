@@ -1,4 +1,5 @@
 import json
+import pathlib
 import re
 from common.llm import chat  # Provided by your course scaffold
 
@@ -34,14 +35,16 @@ GET_COMMIT_DIFF_SUMMARY_SPEC = {
 # ==========================================
 def mock_issue_lookup(ticket_id: str) -> str:
     """Returns the business context of a ticket."""
-    with open("issues.json", "r") as f:
+    _dir = pathlib.Path(__file__).parent
+    with open(_dir / "issues.json", "r") as f:
         issues = json.load(f)
     ticket = issues.get(ticket_id.upper(), {"error": "Ticket not found."})
     return json.dumps(ticket)
 
 def get_commit_diff_summary(commit_hash: str) -> str:
     """The token-efficient redesign: extracts metadata instead of raw code."""
-    with open("commits.json", "r") as f:
+    _dir = pathlib.Path(__file__).parent
+    with open(_dir / "commits.json", "r") as f:
         commits = json.load(f)
     summary = commits.get(commit_hash, {"error": "Commit not found."})
     return json.dumps(summary)

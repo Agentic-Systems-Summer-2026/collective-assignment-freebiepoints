@@ -4,70 +4,70 @@
   "pass": false,
   "assertion": "missing required substring: 'error'",
   "judge": "skipped (assertion failed)",
-  "output": "Fixed memory leak in user authentication by ensuring cache keys are cleared upon socket close. This resolves issue PROJ-404 where user sessions were hanging due to unclosed cache keys. The change modifies the verify_user_session function in services/auth.py to properly clean up resources when connections terminate."
+  "output": "Unable to retrieve commit details for hash 'test-hash-123'. The commit could not be found in the repository."
  },
  {
   "id": "refuse-02",
   "pass": false,
   "assertion": "missing required substring: 'error'",
   "judge": "skipped (assertion failed)",
-  "output": "Fixed memory leak in user authentication by ensuring cache keys are cleared upon socket close. This resolves issue PROJ-404 where user sessions were hanging due to unclosed cache keys. The change modifies the verify_user_session function in services/auth.py to properly clean up resources when connections terminate."
+  "output": "Unable to retrieve commit details for hash 'test-hash-123'. The commit could not be found in the repository."
  },
  {
   "id": "context-01",
-  "pass": false,
-  "assertion": "contains forbidden substring: '.py'",
-  "judge": "skipped (assertion failed)",
-  "output": "Fixed PROJ-404 hanging sessions issue by resolving a memory leak in user authentication. The fix ensures cache keys are properly cleared upon socket close, preventing session hanging. Changes were made to the verify_user_session function in services/auth.py."
+  "pass": true,
+  "assertion": "ok",
+  "judge": "no judge criteria",
+  "output": "Fixed PROJ-404: Resolved hanging sessions issue by ensuring cache keys are properly cleared when sockets close, preventing memory leaks in user authentication."
  },
  {
   "id": "context-02",
-  "pass": false,
-  "assertion": "missing required substring: 'PROJ-404'",
-  "judge": "skipped (assertion failed)",
-  "output": "ERROR: Max loops reached"
+  "pass": true,
+  "assertion": "ok",
+  "judge": "no judge criteria",
+  "output": "Resolved PROJ-404 memory leak in authentication by fixing cache key clearing upon socket close. This addresses user reports of hanging sessions where the listener was not properly clearing cache keys, ensuring proper cleanup without failures."
  },
  {
   "id": "context-03",
-  "pass": false,
-  "assertion": "contains forbidden substring: '.py'",
-  "judge": "skipped (assertion failed)",
-  "output": "Resolved memory leak issue (PROJ-404) in user authentication by implementing cache key clearing on socket close. Modified services/auth.py to ensure cache cleanup occurs when user sessions end, preventing session hanging and memory leaks as specified in acceptance criteria."
+  "pass": true,
+  "assertion": "ok",
+  "judge": "no judge criteria",
+  "output": "Fixed memory leak in user authentication where cache keys were not being cleared upon socket close. This resolves issue PROJ-404 where sessions were hanging due to unclosed listeners. The fix ensures cache cleanup occurs properly without failures."
  },
  {
   "id": "jargon-01",
   "pass": true,
   "assertion": "ok",
   "judge": "no judge criteria",
-  "output": "ERROR: Max loops reached"
+  "output": "Fixed PROJ-404 hanging sessions issue by resolving a memory leak in user authentication. The fix ensures cache keys are properly cleared upon socket close, preventing session hanging as outlined in the acceptance criteria."
  },
  {
   "id": "jargon-02",
-  "pass": false,
-  "assertion": "contains forbidden substring: 'verify_user_session'",
-  "judge": "skipped (assertion failed)",
-  "output": "Resolved PROJ-404 memory leak in authentication by fixing cache key clearing in the verify_user_session function. The issue was that cache keys weren't being cleared upon socket close, causing sessions to hang. The fix ensures proper cleanup of authentication session data when connections terminate."
+  "pass": true,
+  "assertion": "ok",
+  "judge": "no judge criteria",
+  "output": "ERROR: Max loops reached"
  },
  {
   "id": "jargon-03",
   "pass": true,
   "assertion": "ok",
   "judge": "no judge criteria",
-  "output": "Resolved PROJ-404: Fixed memory leak in user authentication by implementing explicit cache cleanup during session teardown. The verify_user_session function now properly clears cache keys when sockets close, preventing session hanging issues reported by users."
+  "output": "Fixed memory leak in user authentication where sessions were hanging due to cache keys not being cleared. Implemented explicit cleanup during session teardown as per ticket PROJ-404. The fix ensures cache clears upon socket close without failing."
  },
  {
   "id": "format-01",
-  "pass": true,
-  "assertion": "ok",
-  "judge": "no judge criteria",
-  "output": "Fixed PROJ-404 hanging sessions issue by resolving memory leak in user authentication. The fix ensures cache keys are properly cleared upon socket close, preventing session hanging. Changes were made to the verify_user_session function in services/auth.py."
+  "pass": false,
+  "assertion": "missing required substring: 'PROJ-404'",
+  "judge": "skipped (assertion failed)",
+  "output": "ERROR: Max loops reached"
  },
  {
   "id": "format-02",
   "pass": true,
   "assertion": "ok",
   "judge": "no judge criteria",
-  "output": "Resolved PROJ-404 memory leak in authentication by fixing cache key clearing in the verify_user_session function. The issue was that cache keys weren't being cleared upon socket close, causing sessions to hang. The fix ensures proper cleanup of authentication session data."
+  "output": "Resolved PROJ-404 memory leak in authentication by fixing cache key clearing upon socket close. This addresses user reports of hanging sessions where the listener was not properly clearing cache keys, ensuring proper cleanup without failures."
  },
  {
   "id": "judge-01",
@@ -80,28 +80,28 @@
   "id": "judge-02",
   "pass": false,
   "assertion": "ok",
-  "judge": "Contains technical implementation details about cache key clearing and verify_user_session function that non-technical stakeholders wouldn't understand.",
-  "output": "Resolved PROJ-404 memory leak in authentication by fixing cache key clearing in the verify_user_session function. The issue was that cache keys weren't being cleared upon socket close, causing sessions to hang. The fix ensures proper cache cleanup without failures."
+  "judge": "Candidate answer is just an error message with no release note content to evaluate",
+  "output": "ERROR: Max loops reached"
  },
  {
   "id": "judge-03",
   "pass": false,
   "assertion": "contains forbidden substring: 'cache'",
   "judge": "skipped (assertion failed)",
-  "output": "Resolved memory leak in user authentication by implementing explicit cache cleanup during session teardown. Fixed issue where cache keys were not being cleared upon socket close, causing sessions to hang. The fix ensures proper resource cleanup when verify_user_session is called, addressing acceptance criteria that cache must clear without failure."
+  "output": "Fixed memory leak in user authentication where sessions were hanging due to cache keys not being cleared. Implemented explicit cleanup during session teardown as per ticket PROJ-404. The fix ensures cache clears upon socket close without failing, resolving the reported issue."
  },
  {
   "id": "length-01",
   "pass": false,
-  "assertion": "contains forbidden substring: '.py'",
+  "assertion": "missing required substring: 'PROJ-404'",
   "judge": "skipped (assertion failed)",
-  "output": "Fixed PROJ-404 hanging sessions issue by resolving a memory leak in user authentication. The fix ensures cache keys are properly cleared upon socket close, preventing session hanging. Changes were made to services/auth.py in the verify_user_session function."
+  "output": "ERROR: Max loops reached"
  },
  {
   "id": "content-01",
-  "pass": false,
-  "assertion": "contains forbidden substring: '.py'",
-  "judge": "skipped (assertion failed)",
-  "output": "Fixed PROJ-404 hanging sessions issue by resolving memory leak in user authentication. The fix ensures cache keys are properly cleared upon socket close, preventing session hanging. Changes were made to services/auth.py in the verify_user_session function."
+  "pass": true,
+  "assertion": "ok",
+  "judge": "no judge criteria",
+  "output": "Fixed PROJ-404: Resolved hanging sessions issue by ensuring cache keys are properly cleared when sockets close, preventing memory leaks in user authentication."
  }
 ]

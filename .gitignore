@@ -26,3 +26,4 @@ bc3-reliability/checkpoint.json
 .fake
 # Local Netlify folder
 .netlify
+bc4-evals/last_run.json
