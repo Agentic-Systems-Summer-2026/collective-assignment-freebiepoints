@@ -169,16 +169,18 @@ def run_agent_slice(commit_hash: str, commit_message: str):
                 print(f"❌ Unknown tool or invalid args: {tool_name}")
                 break
         elif action_type == "final":
+            summary = action.get("summary", "")
             print("\n✅ Final Synthesis Reached:")
-            print(action.get("summary", ""))
+            print(summary)
             completed = True
-            break
+            return summary
         else:
             print(f"❌ Unknown action type: {action_type}")
             break
             
-    if loop_count == MAX_LOOPS and not completed:
+    if not completed:
         print("\n⚠️ Max loops reached. Terminating to prevent infinite execution.")
+        return "ERROR: Max loops reached"
 
 # ==========================================
 # 5. EXECUTION ENTRY POINT

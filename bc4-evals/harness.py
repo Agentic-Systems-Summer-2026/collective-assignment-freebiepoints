@@ -28,8 +28,9 @@ PASS_THRESHOLD = 0.8  # the CI gate fails below this — tune with evidence
 
 
 def target(prompt: str) -> str:
-    """The system under test. REPLACE ME with a call into your own agent."""
-    return chat([{"role": "user", "content": prompt}], max_tokens=300, cache=True)
+    """The system under test. Calls run_agent_slice from the capstone agent."""
+    from capstone.agent import run_agent_slice
+    return run_agent_slice(commit_hash="test-hash-123", commit_message=prompt)
 
 
 def check_case(case: dict, output: str) -> tuple[bool, str]:
