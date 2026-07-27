@@ -3,28 +3,6 @@ import re
 from common.llm import chat  # Provided by your course scaffold
 
 # ==========================================
-# 1. MOCK DATA (For Demo & Testing)
-# ==========================================
-MOCK_ISSUES = {
-    "PROJ-404": {
-        "title": "Fix memory leak in user authentication",
-        "description": "Users report sessions hanging. The listener isn't clearing cache keys.",
-        "acceptance_criteria": "Cache must clear upon socket close without failing."
-    }
-}
-
-MOCK_RAW_DIFF = """
-+++ b/services/auth.py
-@@ -12,14 +12,18 @@ def verify_user_session(session_id):
--    cache.set(f"auth_token_{session_id}", session.token)
-+    # FIX PROJ-404: Explicit cleanup
-+    try:
-+        cache.set(f"auth_token_{session_id}", session.token)
-+    finally:
-+        context.clear_active_session_pointers()
-"""
-
-# ==========================================
 # 2. TOOL SCHEMAS (The Specs)
 # ==========================================
 MOCK_ISSUE_LOOKUP_SPEC = {
@@ -56,22 +34,16 @@ GET_COMMIT_DIFF_SUMMARY_SPEC = {
 # ==========================================
 def mock_issue_lookup(ticket_id: str) -> str:
     """Returns the business context of a ticket."""
-    ticket = MOCK_ISSUES.get(ticket_id.upper(), {"error": "Ticket not found."})
+    with open("issues.json", "r") as f:
+        issues = json.load(f)
+    ticket = issues.get(ticket_id.upper(), {"error": "Ticket not found."})
     return json.dumps(ticket)
 
 def get_commit_diff_summary(commit_hash: str) -> str:
     """The token-efficient redesign: extracts metadata instead of raw code."""
-    # In a real app, this would run `git diff {commit_hash}`
-    files_changed = ["services/auth.py"]
-    functions_touched = ["verify_user_session"]
-    ticket_refs = ["PROJ-404"]
-            
-    summary = {
-        "commit": commit_hash,
-        "files_modified": files_changed,
-        "impacted_functions": functions_touched,
-        "metadata_tags": ticket_refs
-    }
+    with open("commits.json", "r") as f:
+        commits = json.load(f)
+    summary = commits.get(commit_hash, {"error": "Commit not found."})
     return json.dumps(summary)
 
 # Tool routing dictionary for O(1) execution lookups

@@ -1,0 +1,18 @@
+{
+  "a1b2c3d": {
+    "commit": "a1b2c3d",
+    "files_modified": ["services/auth.py"],
+    "impacted_functions": ["verify_user_session"],
+    "metadata_tags": ["PROJ-404"]
+  },
+  "b2c3d4e": {
+    "commit": "b2c3d4e",
+    "files_modified": ["ui/header.jsx", "ui/theme.css"],
+    "impacted_functions": ["renderThemeToggle"],
+    "metadata_tags": ["PROJ-505"]
+  },
+  "invalid-hash": {
+    "commit": "invalid-hash",
+    "error": "Commit not found or no files modified."
+  }
+}

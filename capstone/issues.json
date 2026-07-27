@@ -1,0 +1,17 @@
+{
+  "PROJ-404": {
+    "title": "Fix memory leak in user authentication",
+    "description": "Users report sessions hanging. The listener isn't clearing cache keys.",
+    "acceptance_criteria": "Cache must clear upon socket close without failing."
+  },
+  "PROJ-505": {
+    "title": "Add dark mode toggle",
+    "description": "Users want a way to switch the UI to a dark theme for nighttime viewing.",
+    "acceptance_criteria": "Toggle appears in the header. Selection saves to local storage."
+  },
+  "PROJ-999": {
+    "title": "Fix bug",
+    "description": "",
+    "acceptance_criteria": ""
+  }
+}
