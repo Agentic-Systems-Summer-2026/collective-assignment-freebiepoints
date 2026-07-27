@@ -27,3 +27,4 @@ bc3-reliability/checkpoint.json
 # Local Netlify folder
 .netlify
 bc4-evals/last_run.json
+bc4-evals/last_run.json
