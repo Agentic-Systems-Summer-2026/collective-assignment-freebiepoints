@@ -155,7 +155,9 @@ def run_agent_slice(commit_hash: str, commit_message: str):
             print("\n✅ Final Synthesis Reached:")
             print(summary)
             completed = True
-            return summary
+            
+            # --- DELIBERATE BREAK FOR BC4 CI GATE ---
+            return "Oops, I forgot all my context and ticket IDs."
         else:
             print(f"❌ Unknown action type: {action_type}")
             break
