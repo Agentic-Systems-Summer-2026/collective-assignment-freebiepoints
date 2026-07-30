@@ -68,6 +68,7 @@ DISALLOWED_SUMMARY_PATTERNS = [
     re.compile(r"\b(api[_-]?key|access[_-]?token|secret)\b", re.IGNORECASE),
 ]
 FILELIKE_TOKEN_PATTERN = re.compile(r"\b[\w./-]+\.(?:py|js|jsx|ts|tsx|css|md|json|yaml|yml|sh)\b")
+SNAKE_CASE_TOKEN_PATTERN = re.compile(r"\b[a-z]+(?:_[a-z]+)+\b")
 
 
 def _sanitize_untrusted_text(text: str, max_len: int = 600) -> str:
@@ -239,6 +240,83 @@ def _write_audit_record(record: dict):
         f.write(json.dumps(record, ensure_ascii=True) + "\n")
 
 
+def enforce_user_product_linter(draft_markdown: str) -> tuple[bool, list]:
+    """Reject technical artifacts from user-facing changelog drafts."""
+    violations = []
+
+    if not isinstance(draft_markdown, str):
+        return False, ["Draft is not a string."]
+
+    filelike_tokens = FILELIKE_TOKEN_PATTERN.findall(draft_markdown)
+    for token in filelike_tokens:
+        violations.append(f"Contains file path/extension token: {token}")
+
+    snake_case_tokens = SNAKE_CASE_TOKEN_PATTERN.findall(draft_markdown)
+    for token in snake_case_tokens:
+        violations.append(f"Contains technical snake_case token: {token}")
+
+    return len(violations) == 0, violations
+
+
+def run_user_product_agent(business_facts: dict) -> str:
+    """Generate a non-technical user changelog with adaptive rejection memory."""
+    _dir = pathlib.Path(__file__).parent
+    rejected_patterns_path = _dir / "rejected_patterns.json"
+
+    rejected_patterns = []
+    if rejected_patterns_path.exists():
+        try:
+            with open(rejected_patterns_path, "r", encoding="utf-8") as f:
+                loaded = json.load(f)
+            if isinstance(loaded, list):
+                rejected_patterns = [item for item in loaded if isinstance(item, str)]
+        except (json.JSONDecodeError, OSError):
+            rejected_patterns = []
+
+    attempt = 0
+    while attempt < 3:
+        attempt += 1
+        system_prompt = (
+            "You are a Product Marketing Writer. "
+            "Write exactly 2 sentences of user-facing changelog copy with NO technical jargon, "
+            "NO file names, NO code symbols, and NO implementation details. "
+            "Avoid these previously rejected patterns exactly: "
+            f"{json.dumps(rejected_patterns, ensure_ascii=True)}"
+        )
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": json.dumps(business_facts, ensure_ascii=True)},
+        ]
+        draft = chat(messages=messages)
+        is_clean, violations = enforce_user_product_linter(draft)
+        if is_clean:
+            return draft
+
+        new_violations = [v for v in violations if v not in rejected_patterns]
+        if new_violations:
+            rejected_patterns.extend(new_violations)
+            try:
+                with open(rejected_patterns_path, "w", encoding="utf-8") as f:
+                    json.dump(rejected_patterns, f, ensure_ascii=True, indent=2)
+            except OSError:
+                pass
+
+    return "We are unable to generate a user-friendly changelog right now."
+
+
+def run_technical_writer_agent(technical_facts: dict) -> str:
+    """Generate internal patch notes with technical detail."""
+    system_prompt = (
+        "You are a Technical Writer generating detailed internal patch notes. "
+        "Use precise technical language, include implementation details, and stay grounded in provided facts."
+    )
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": json.dumps(technical_facts, ensure_ascii=True)},
+    ]
+    return chat(messages=messages)
+
+
 # ==========================================
 # 4. ORCHESTRATOR LOOP (State Management)
 # ==========================================
@@ -354,9 +432,15 @@ def run_agent_slice(commit_hash: str, commit_message: str):
         }
     )
 
-    print("\n✅ Final Synthesis Reached:")
-    print(summary)
-    return summary
+    business_context = {"issue_details": facts.get("issue_details", {})}
+    user_changelog = run_user_product_agent(business_context)
+    technical_patch_notes = run_technical_writer_agent(facts)
+
+    print("\n✅ User Changelog:")
+    print(user_changelog)
+    print("\n✅ Technical Patch Notes:")
+    print(technical_patch_notes)
+    return user_changelog, technical_patch_notes
 
 # ==========================================
 # 5. EXECUTION ENTRY POINT

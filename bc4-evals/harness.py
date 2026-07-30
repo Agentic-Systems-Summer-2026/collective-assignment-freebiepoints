@@ -15,11 +15,27 @@ Three layers, per the pre-read:
   3. error analysis — look at the failures, not just the score
 """
 import json
+import os
 import pathlib
 import sys
 
+FREE_OPENROUTER_MODEL = os.environ.get(
+    "OPENROUTER_FREE_MODEL", "google/gemma-4-31b-it:free"
+)
+
+# Force OpenRouter for this harness without changing common.llm.py.
+os.environ.pop("LITELLM_API_KEY", None)
+os.environ.setdefault("COURSE_MODEL", FREE_OPENROUTER_MODEL)
+
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
-from common.llm import chat, STATS
+from common.llm import STATS, PROVIDER, chat as base_chat
+
+
+def chat(messages, model=None, **kwargs):
+    """Use a free OpenRouter model by default for eval runs without changing common.llm."""
+    if model is None and PROVIDER == "OpenRouter":
+        model = FREE_OPENROUTER_MODEL
+    return base_chat(messages, model=model, **kwargs)
 
 HERE = pathlib.Path(__file__).resolve().parent
 CASES = HERE / "cases.jsonl"
@@ -37,7 +53,15 @@ def target(prompt: str) -> str:
     except (json.JSONDecodeError, KeyError):
         commit_hash = "unknown-hash"
         commit_message = prompt
-    return run_agent_slice(commit_hash=commit_hash, commit_message=commit_message)
+        
+    # Capture the output, which is now a tuple
+    result = run_agent_slice(commit_hash=commit_hash, commit_message=commit_message)
+    
+    # Combine the tuple into a single string for the eval assertions
+    if isinstance(result, tuple):
+        return f"USER DOCS:\n{result[0]}\n\nTECHNICAL DOCS:\n{result[1]}"
+    
+    return str(result)
 
 
 def check_case(case: dict, output: str) -> tuple[bool, str]:

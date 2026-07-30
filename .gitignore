@@ -28,3 +28,4 @@ bc3-reliability/checkpoint.json
 .netlify
 bc4-evals/last_run.json
 bc4-evals/last_run.json
+capstone/agent_audit.jsonl
