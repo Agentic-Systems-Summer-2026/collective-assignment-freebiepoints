@@ -20,8 +20,11 @@ import pathlib
 import sys
 
 FREE_OPENROUTER_MODEL = os.environ.get(
-    "OPENROUTER_FREE_MODEL", "google/gemma-4-31b-it:free"
+    "OPENROUTER_FREE_MODEL", "qwen/qwen3-coder"
 )
+
+# Fallback model used when the preferred OpenRouter model slug is retired or unavailable.
+OPENROUTER_FALLBACK_MODEL = os.environ.get("OPENROUTER_FALLBACK_MODEL", "openrouter/auto")
 
 # Force OpenRouter for this harness without changing common.llm.py.
 os.environ.pop("LITELLM_API_KEY", None)
@@ -35,7 +38,13 @@ def chat(messages, model=None, **kwargs):
     """Use a free OpenRouter model by default for eval runs without changing common.llm."""
     if model is None and PROVIDER == "OpenRouter":
         model = FREE_OPENROUTER_MODEL
-    return base_chat(messages, model=model, **kwargs)
+    try:
+        return base_chat(messages, model=model, **kwargs)
+    except RuntimeError as e:
+        # OpenRouter occasionally retires/renames model slugs; retry once with a stable router model.
+        if PROVIDER == "OpenRouter" and "(404)" in str(e) and model != OPENROUTER_FALLBACK_MODEL:
+            return base_chat(messages, model=OPENROUTER_FALLBACK_MODEL, **kwargs)
+        raise
 
 HERE = pathlib.Path(__file__).resolve().parent
 CASES = HERE / "cases.jsonl"
