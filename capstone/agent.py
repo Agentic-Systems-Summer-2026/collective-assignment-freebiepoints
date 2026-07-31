@@ -1,8 +1,23 @@
+import argparse
+import ast
 import json
+import os
 import pathlib
 import re
+import subprocess
 from datetime import datetime, timezone
 from common.llm import chat  # Provided by your course scaffold
+
+DEFAULT_ISSUES_PATH = pathlib.Path(__file__).parent / "issues.json"
+DEFAULT_REPO_PATH = pathlib.Path(__file__).resolve().parents[1] / "collective-assignment-freebiepoints"
+
+
+def _resolve_repo_path() -> pathlib.Path:
+    """Resolve target repo path with a safe local fallback."""
+    configured = pathlib.Path(os.environ.get("TARGET_REPO_PATH", DEFAULT_REPO_PATH))
+    if configured.exists():
+        return configured
+    return pathlib.Path(__file__).resolve().parents[1]
 
 # ==========================================
 # 1. TOOL SCHEMAS (The Specs)
@@ -31,29 +46,159 @@ GET_COMMIT_DIFF_SUMMARY_SPEC = {
     }
 }
 
+INSPECT_CODE_FUNCTION_SPEC = {
+    "name": "inspect_code_function",
+    "description": "Extracts a specific Python function or method code block from a file.",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "file_path": {"type": "string", "description": "Path to the Python file"},
+            "function_name": {"type": "string", "description": "Function or method name to extract"}
+        },
+        "required": ["file_path", "function_name"]
+    }
+}
+
+WRITE_DOCUMENTATION_ARTIFACT_SPEC = {
+    "name": "write_documentation_artifact",
+    "description": "Writes generated markdown artifacts to disk.",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "type": {"type": "string", "description": "Artifact type: user_changelog or technical_patch_notes"},
+            "content": {"type": "string", "description": "Markdown content to save"}
+        },
+        "required": ["type", "content"]
+    }
+}
+
 # ==========================================
 # 2. TOOL IMPLEMENTATIONS (Python Logic)
 # ==========================================
 def mock_issue_lookup(ticket_id: str) -> str:
     """Returns the business context of a ticket."""
-    _dir = pathlib.Path(__file__).parent
-    with open(_dir / "issues.json", "r") as f:
-        issues = json.load(f)
+    issues_path = os.environ.get("MOCK_ISSUES_PATH", DEFAULT_ISSUES_PATH)
+    try:
+        with open(issues_path, "r") as f:
+            issues = json.load(f)
+    except FileNotFoundError:
+        return json.dumps({"error": f"Issues file not found: {issues_path}"})
     ticket = issues.get(ticket_id.upper(), {"error": "Ticket not found."})
     return json.dumps(ticket)
 
 def get_commit_diff_summary(commit_hash: str) -> str:
     """The token-efficient redesign: extracts metadata instead of raw code."""
-    _dir = pathlib.Path(__file__).parent
-    with open(_dir / "commits.json", "r") as f:
-        commits = json.load(f)
-    summary = commits.get(commit_hash, {"error": "Commit not found."})
-    return json.dumps(summary)
+    repo_path = _resolve_repo_path()
+    try:
+        files_result = subprocess.run(
+            ["git", "diff-tree", "--no-commit-id", "--name-only", "-r", commit_hash],
+            cwd=repo_path,
+            capture_output=True,
+            text=True,
+        )
+        if files_result.returncode != 0:
+            raise RuntimeError(files_result.stderr.strip() or "git diff-tree failed")
+        files_modified = [line for line in files_result.stdout.splitlines() if line]
+
+        show_result = subprocess.run(
+            ["git", "show", commit_hash],
+            cwd=repo_path,
+            capture_output=True,
+            text=True,
+        )
+        if show_result.returncode != 0:
+            raise RuntimeError(show_result.stderr.strip() or "git show failed")
+
+        impacted_functions = []
+        hunk_header_pattern = re.compile(r"^@@.*?@@\s*(.*)$")
+        for line in show_result.stdout.splitlines():
+            if not line.startswith("@@"):
+                continue
+            match = hunk_header_pattern.match(line)
+            if not match:
+                continue
+            context = match.group(1).strip()
+            if context and context not in impacted_functions:
+                impacted_functions.append(context)
+
+        return json.dumps(
+            {
+                "commit_hash": commit_hash,
+                "files_modified": files_modified,
+                "impacted_functions": impacted_functions,
+            }
+        )
+    except Exception as e:
+        return json.dumps({"error": f"Git execution failed: {str(e)}"})
+
+
+def inspect_code_function(file_path: str, function_name: str) -> str:
+    """Extract a function or method code block from a Python source file."""
+    repo_path = _resolve_repo_path()
+    candidate = pathlib.Path(file_path)
+    target_path = candidate if candidate.is_absolute() else repo_path / candidate
+
+    try:
+        source = target_path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        return json.dumps({"error": f"File not found: {target_path}"})
+    except OSError as e:
+        return json.dumps({"error": f"Failed reading file: {str(e)}"})
+
+    try:
+        tree = ast.parse(source)
+    except SyntaxError as e:
+        return json.dumps({"error": f"Failed parsing Python file: {str(e)}"})
+
+    lines = source.splitlines()
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name == function_name:
+            start = getattr(node, "lineno", None)
+            end = getattr(node, "end_lineno", None)
+            if start is None or end is None:
+                continue
+            snippet = "\n".join(lines[start - 1:end])
+            return json.dumps(
+                {
+                    "file_path": str(target_path),
+                    "function_name": function_name,
+                    "start_line": start,
+                    "end_line": end,
+                    "code": snippet,
+                }
+            )
+
+    return json.dumps(
+        {
+            "error": f"Function '{function_name}' not found in {target_path}",
+        }
+    )
+
+
+def write_documentation_artifact(type: str, content: str) -> str:
+    """Persist generated markdown artifacts to local disk."""
+    artifact_name_map = {
+        "user_changelog": "user_changelog.md",
+        "technical_patch_notes": "technical_patch_notes.md",
+    }
+    filename = artifact_name_map.get(type)
+    if filename is None:
+        return json.dumps({"error": f"Unsupported artifact type: {type}"})
+
+    artifact_path = pathlib.Path(__file__).parent / filename
+    try:
+        artifact_path.write_text(content, encoding="utf-8")
+    except OSError as e:
+        return json.dumps({"error": f"Failed writing artifact: {str(e)}"})
+
+    return json.dumps({"status": "ok", "type": type, "path": str(artifact_path)})
 
 # Tool routing dictionary for O(1) execution lookups
 TOOL_MAP = {
     "mock_issue_lookup": mock_issue_lookup,
-    "get_commit_diff_summary": get_commit_diff_summary
+    "get_commit_diff_summary": get_commit_diff_summary,
+    "inspect_code_function": inspect_code_function,
+    "write_documentation_artifact": write_documentation_artifact,
 }
 
 
@@ -121,6 +266,20 @@ def _validate_tool_args(tool_name: str, tool_args: dict) -> bool:
         ticket_id = tool_args.get("ticket_id")
         return set(tool_args.keys()) == {"ticket_id"} and isinstance(ticket_id, str) and bool(
             TICKET_ID_PATTERN.fullmatch(ticket_id.upper())
+        )
+
+    if tool_name == "inspect_code_function":
+        return (
+            set(tool_args.keys()) == {"file_path", "function_name"}
+            and isinstance(tool_args.get("file_path"), str)
+            and isinstance(tool_args.get("function_name"), str)
+        )
+
+    if tool_name == "write_documentation_artifact":
+        return (
+            set(tool_args.keys()) == {"type", "content"}
+            and isinstance(tool_args.get("type"), str)
+            and isinstance(tool_args.get("content"), str)
         )
 
     return False
@@ -440,14 +599,36 @@ def run_agent_slice(commit_hash: str, commit_message: str):
     print(user_changelog)
     print("\n✅ Technical Patch Notes:")
     print(technical_patch_notes)
+
+    user_artifact_result = _parse_tool_json(
+        write_documentation_artifact("user_changelog", user_changelog)
+    )
+    tech_artifact_result = _parse_tool_json(
+        write_documentation_artifact("technical_patch_notes", technical_patch_notes)
+    )
+
+    if user_artifact_result.get("error"):
+        print(f"\n⚠️ Failed to save user changelog: {user_artifact_result['error']}")
+    if tech_artifact_result.get("error"):
+        print(f"\n⚠️ Failed to save technical patch notes: {tech_artifact_result['error']}")
+
     return user_changelog, technical_patch_notes
 
 # ==========================================
 # 5. EXECUTION ENTRY POINT
 # ==========================================
 if __name__ == "__main__":
-    # Simulate a cryptic commit that requires the agent to investigate
-    test_hash = "a1b2c3d"
-    test_message = "fixes PROJ-404 hanging sessions"
-    
-    run_agent_slice(test_hash, test_message)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("commit_hash")
+    parser.add_argument("commit_message")
+    parser.add_argument("--repo", default=None)
+    parser.add_argument("--issues", default=None)
+    args = parser.parse_args()
+
+    if args.repo is not None:
+        os.environ["TARGET_REPO_PATH"] = args.repo
+
+    if args.issues is not None:
+        os.environ["MOCK_ISSUES_PATH"] = args.issues
+
+    run_agent_slice(args.commit_hash, args.commit_message)
