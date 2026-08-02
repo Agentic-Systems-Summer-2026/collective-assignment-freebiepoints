@@ -109,3 +109,25 @@ What I had to correct in code my agent wrote (AI-use disclosure — expected, no
 - **What failed:** My initial test logic was testing for jargon leakage. This stage of the build needs to have the technical jargon to pass to downstream agents. Jargon leakage will be an issue handled next week for the User Product Agent.
 - **What I changed:** Shifted the test suite to only evaluate context aggregation. Tests for jargon and other potential issues will be added next week.
 - **Where AI helped, and how I verified its output:** Used OpenClaw to refactor the test cases into JSON strings and update the system prompt guardrails in agent.py. Verified the output by running the local sweep, manually validating test cases in last_run.json and comparing to the judges' output.
+
+## Day 15 — BC5 Observability & Oversight     
+- **What I built:** Added full observability to quiet_agent.py by creating observed_agent.py — a traced version of the same three-step pipeline.
+  Each LLM step runs through a traced_chat() helper that measures latency with time.monotonic(), computes per-call token delta by diffing 
+  common.llm.STATS before and after, and appends a structured JSONL record to trace.jsonl (timestamp, step, model, prompt/response lengths,
+  tokens, latency, decision, error). 
+  Added a human approval gate before summary.md is written: it prints the pending summary plus a live usage snapshot and requires an explicit
+  yes to proceed, logging the human decision in the trace either way. Also built incident_sim.py, which injects a simulated network failure 
+  after step 1 by replacing urllib.request.urlopen with a stub that raises socket.timeout — producing a real trace showing one clean step, a
+  failed retry sequence, and an INCIDENT_BOUNDARY record confirming nothing was written to disk.
+- **What failed:** The agents calls were not passed through the OpenClaw gateway, so there were no matching logs to reconcile. It's worth noting
+  the network failure was simulated through code injection, not an actual network stop.
+- **What I changed:** Rather than modifying quiet_agent.py or common/llm.py, new files were built, with traced_chat() as a wrapper for the caht()
+  call to keep the shared library clean; the only thing common.llm doesn't expose that we needed was per-call timing and per-call token delta,
+  both of which are easy to derive externally with a before/after snapshot. Also added an "error" field to every trace record — null on success,   
+  the exception on failure — so a failed run and a clean run have the same schema.
+- **Where AI helped, and how I verified its output:** OpenClaw wrote both observed_agent.py and incident_sim.py. I reviewed the code before 
+  running it and asked a follow-up question to clarify whether chat() was already capable of meeting requirement #2 on its own — the answer
+  was "mostly, but not timing or per-call delta," which confirmed the wrapper was the right call rather than over-engineering. I ran 
+  incident_sim.py live and inspected the raw trace.jsonl output to verify all three expected records appeared (clean step 1, failed step 2, 
+  incident boundary) and that summary.md was not written. The latency on the failed step (3.001s) matched exactly 2^0 + 2^1 retry delays,
+  which confirmed the retry loop ran to exhaustion — that's the kind of thing you can only verify if you're actually reading the trace.
