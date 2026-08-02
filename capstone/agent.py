@@ -467,7 +467,8 @@ def run_technical_writer_agent(technical_facts: dict) -> str:
     """Generate internal patch notes with technical detail."""
     system_prompt = (
         "You are a Technical Writer generating detailed internal patch notes. "
-        "Use precise technical language, include implementation details, and stay grounded in provided facts."
+        "Use precise technical language, include implementation details, and stay grounded in provided facts. "
+        "Keep the total output concise and strictly under 1500 characters." # Added length constraint
     )
     messages = [
         {"role": "system", "content": system_prompt},
@@ -591,7 +592,11 @@ def run_agent_slice(commit_hash: str, commit_message: str):
         }
     )
 
-    business_context = {"issue_details": facts.get("issue_details", {})}
+    business_context = {
+        "issue_details": facts.get("issue_details", {}),
+        "commit_message": safe_commit_message # Included commit message for the product agent
+    }
+    
     user_changelog = run_user_product_agent(business_context)
     technical_patch_notes = run_technical_writer_agent(facts)
 
