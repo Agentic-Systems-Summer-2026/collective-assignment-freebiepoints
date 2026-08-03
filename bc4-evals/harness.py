@@ -74,6 +74,8 @@ def _read_doc_artifact(path: pathlib.Path) -> str:
 
 def target(prompt: str) -> str:
     """The system under test. Runs capstone agent and reads saved markdown artifacts."""
+    if not os.environ.get("AUTO_APPROVE_HITL"):
+        os.environ["AUTO_APPROVE_HITL"] = "1"
     from capstone.agent import run_agent_slice
 
     try:

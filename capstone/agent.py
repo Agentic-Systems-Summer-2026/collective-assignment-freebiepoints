@@ -19,6 +19,12 @@ def _resolve_repo_path() -> pathlib.Path:
         return configured
     return pathlib.Path(__file__).resolve().parents[1]
 
+
+def _should_auto_approve() -> bool:
+    """Allow eval/harness runs to skip the interactive HITL gate."""
+    value = os.environ.get("AUTO_APPROVE_HITL", "").strip().lower()
+    return value in {"1", "true", "yes", "y", "on"}
+
 # ==========================================
 # 1. TOOL SCHEMAS (The Specs)
 # ==========================================
@@ -606,8 +612,12 @@ def run_agent_slice(commit_hash: str, commit_message: str):
     print(technical_patch_notes)
 
     # --- NEW: Human-in-the-Loop Gate ---
-    print("\n✋ HUMAN-IN-THE-LOOP: Review the drafts above.")
-    approval = input("Approve and write these artifacts to disk? (y/n): ").strip().lower()
+    if _should_auto_approve():
+        print("\n🤖 AUTO-APPROVAL: skipping interactive HITL gate for evaluation runs.")
+        approval = "y"
+    else:
+        print("\n✋ HUMAN-IN-THE-LOOP: Review the drafts above.")
+        approval = input("Approve and write these artifacts to disk? (y/n): ").strip().lower()
 
     if approval == 'y':
         user_artifact_result = _parse_tool_json(
