@@ -6,7 +6,7 @@ import pathlib
 import re
 import subprocess
 from datetime import datetime, timezone
-from common.llm import chat  # Provided by your course scaffold
+from common.llm import chat, STATS  # Provided by your course scaffold
 
 DEFAULT_ISSUES_PATH = pathlib.Path(__file__).parent / "issues.json"
 DEFAULT_REPO_PATH = pathlib.Path(__file__).resolve().parents[1] / "collective-assignment-freebiepoints"
@@ -605,17 +605,33 @@ def run_agent_slice(commit_hash: str, commit_message: str):
     print("\n✅ Technical Patch Notes:")
     print(technical_patch_notes)
 
-    user_artifact_result = _parse_tool_json(
-        write_documentation_artifact("user_changelog", user_changelog)
-    )
-    tech_artifact_result = _parse_tool_json(
-        write_documentation_artifact("technical_patch_notes", technical_patch_notes)
-    )
+    # --- NEW: Human-in-the-Loop Gate ---
+    print("\n✋ HUMAN-IN-THE-LOOP: Review the drafts above.")
+    approval = input("Approve and write these artifacts to disk? (y/n): ").strip().lower()
 
-    if user_artifact_result.get("error"):
-        print(f"\n⚠️ Failed to save user changelog: {user_artifact_result['error']}")
-    if tech_artifact_result.get("error"):
-        print(f"\n⚠️ Failed to save technical patch notes: {tech_artifact_result['error']}")
+    if approval == 'y':
+        user_artifact_result = _parse_tool_json(
+            write_documentation_artifact("user_changelog", user_changelog)
+        )
+        tech_artifact_result = _parse_tool_json(
+            write_documentation_artifact("technical_patch_notes", technical_patch_notes)
+        )
+
+        if user_artifact_result.get("error"):
+            print(f"\n⚠️ Failed to save user changelog: {user_artifact_result['error']}")
+        else:
+            print(f"💾 Saved: {user_artifact_result.get('path')}")
+            
+        if tech_artifact_result.get("error"):
+            print(f"\n⚠️ Failed to save technical patch notes: {tech_artifact_result['error']}")
+        else:
+            print(f"💾 Saved: {tech_artifact_result.get('path')}")
+    else:
+        print("\n❌ Action rejected by human. Artifacts were not written to disk.")
+
+    # --- NEW: Observability Metrics ---
+    print("\n📊 Execution Metrics (Token Usage & API Calls):")
+    print(json.dumps(STATS, indent=2))
 
     return user_changelog, technical_patch_notes
 
