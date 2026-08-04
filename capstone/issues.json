@@ -1,17 +1,17 @@
 {
   "PROJ-404": {
-    "title": "Persist capstone documentation artifacts from orchestrator",
-    "description": "Recent commits moved release-note generation to disk artifacts. The capstone agent needed reliable artifact writing so downstream tooling could read deterministic outputs.",
-    "acceptance_criteria": "run_agent_slice writes both user_changelog.md and technical_patch_notes.md, returns graceful errors on write failure, and preserves existing audit behavior."
+    "title": "Persist capstone documentation artifacts and preserve auditability",
+    "description": "Recent commits moved changelog and patch-note generation to disk-backed markdown artifacts. The capstone orchestrator now needs to write those artifacts reliably from commit-driven summaries while preserving audit logging and graceful failure behavior for downstream tooling.",
+    "acceptance_criteria": "run_agent_slice creates user_changelog.md and technical_patch_notes.md in the capstone workspace, returns structured errors when a write fails, and keeps the existing audit trail behavior intact."
   },
   "PROJ-505": {
-    "title": "Align evaluation harness with artifact-based agent output",
-    "description": "Harness target logic assumed tuple returns from run_agent_slice. After the agent switched to writing markdown files, evaluation runs required reading generated files and cleaning them up per test case.",
-    "acceptance_criteria": "target(prompt) executes agent, reads user and technical markdown artifacts, combines them for assertions/judging, and run_sweep always removes temporary artifacts in finally blocks."
+    "title": "Align the evaluation harness with artifact-based outputs and cleanup",
+    "description": "The harness now needs to treat the capstone agent as an artifact-producing system rather than a tuple-returning function. Recent work introduced markdown files for generated summaries, so evaluation runs should read those outputs, combine them for assertions and judging, and clear them between cases to prevent contamination.",
+    "acceptance_criteria": "target(prompt) executes the agent, reads both generated markdown artifacts, combines them for assertions and judging, and run_sweep always removes temporary artifacts in finally blocks even when a case fails."
   },
   "PROJ-999": {
-    "title": "Refresh evaluation cases for real git-backed behavior",
-    "description": "Legacy BC4 cases depended on mock hashes and static file names from earlier prototypes. Cases now need to validate current behavior, including HEAD-based prompts, invalid-hash safety, and formatting constraints.",
-    "acceptance_criteria": "cases.jsonl contains coverage for valid HEAD prompts, refusal/safety and error paths, section-format checks, and no assumptions about obsolete mock commit payloads."
+    "title": "Refresh BC4 evaluation cases for real git-backed commit behavior",
+    "description": "Older BC4 cases relied on mock hashes and outdated file assumptions from earlier prototypes. The latest work uses real git-backed commit data, HEAD-based prompts, safety handling for invalid hashes, and stricter formatting constraints, so the cases need to reflect that behavior directly.",
+    "acceptance_criteria": "cases.jsonl includes coverage for valid HEAD prompts, refusal or safety behavior for invalid hashes, section-format checks for generated summaries, and no assumptions about obsolete mock commit payloads."
   }
 }
