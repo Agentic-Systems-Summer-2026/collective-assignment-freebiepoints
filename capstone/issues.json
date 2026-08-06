@@ -2,12 +2,17 @@
   "PROJ-404": {
     "title": "Persist capstone documentation artifacts and preserve auditability",
     "description": "Recent commits moved changelog and patch-note generation to disk-backed markdown artifacts. The capstone orchestrator now needs to write those artifacts reliably from commit-driven summaries while preserving audit logging and graceful failure behavior for downstream tooling.",
-    "acceptance_criteria": "run_agent_slice creates user_changelog.md and technical_patch_notes.md in the capstone workspace, returns structured errors when a write fails, and keeps the existing audit trail behavior intact."
+    "acceptance_criteria": "The system must utilize the write_documentation_artifact function to create user_changelog.md and technical_patch_notes.md in the capstone workspace, return structured errors when a write fails, and keep the existing audit trail behavior intact."
   },
   "PROJ-505": {
     "title": "Align the evaluation harness with artifact-based outputs and cleanup",
     "description": "The harness now needs to treat the capstone agent as an artifact-producing system rather than a tuple-returning function. Recent work introduced markdown files for generated summaries, so evaluation runs should read those outputs, combine them for assertions and judging, and clear them between cases to prevent contamination.",
-    "acceptance_criteria": "target(prompt) executes the agent, reads both generated markdown artifacts, combines them for assertions and judging, and run_sweep always removes temporary artifacts in finally blocks even when a case fails."
+    "acceptance_criteria": "The evaluation target executes the agent, reads both generated markdown artifacts, combines them for assertions and judging, and the harness always removes temporary artifacts in finally blocks even when a case fails."
+  },
+  "PROJ-777": {
+    "title": "Enhance code inspection to support brace-delimited languages",
+    "description": "Our current AST parser only supports Python. We need to support multi-language block extraction so the agent can read TypeScript, Kotlin, and JavaScript functions in future PRs.",
+    "acceptance_criteria": "Implement _find_brace_block_end to accurately track nested opening and closing brackets so that expression-bodied or multi-line brace functions are extracted correctly without cutting off early."
   },
   "PROJ-999": {
     "title": "Refresh BC4 evaluation cases for real git-backed commit behavior",
