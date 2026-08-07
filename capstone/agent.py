@@ -152,14 +152,48 @@ def get_commit_diff_summary(commit_hash: str) -> str:
 def _looks_like_function_declaration(line: str, function_name: str) -> bool:
     """Heuristic multi-language declaration matcher for named functions/methods."""
     name = re.escape(function_name)
+    stripped = line.strip()
+    if not stripped or stripped.startswith(("//", "/*", "*", "#")):
+        return False
+
     patterns = [
         rf"^\s*(?:async\s+)?def\s+{name}\s*\(",
         rf"^\s*(?:export\s+)?(?:async\s+)?function\s+{name}\s*\(",
         rf"^\s*(?:export\s+)?(?:const|let|var)\s+{name}\s*=\s*(?:async\s+)?(?:function\b|\([^)]*\)\s*=>|[A-Za-z_][\w$]*\s*=>)",
         rf"^\s*(?:(?:public|private|protected|internal|open|override|final|static|suspend|abstract|inline|tailrec|operator|infix|external|expect|actual)\s+)*fun\s+{name}\s*\(",
-        rf"^\s*(?:(?:public|private|protected|internal|open|override|final|static|suspend|abstract|inline|tailrec|operator|infix|external|expect|actual|async|sealed)\s+)*(?:[\w<>,.?\[\]\s]+\s+)?{name}\s*\([^;]*\)\s*(?::\s*[\w<>,.?\[\]\s]+)?\s*(?:\{{|=|$)",
+        rf"^\s*(?:(?:public|private|protected|internal|open|override|final|static|suspend|abstract|inline|tailrec|operator|infix|external|expect|actual|async|sealed)\s+)*(?:[\w<>,.?\[\]\s]+\s+)?{name}\s*\([^;]*\)\s*(?::\s*[\w<>,.?\[\]\s]+)?\s*(?:\{{|=|$|,)",
     ]
-    return any(re.search(pattern, line) for pattern in patterns)
+    if any(re.search(pattern, line) for pattern in patterns):
+        return True
+
+    # C/C++ declarations often span multiple lines and can end with a trailing comma.
+    if re.search(rf"\b{name}\s*\(", line):
+        prefix = line.split(function_name, 1)[0]
+        if re.fullmatch(r"\s*[A-Za-z_][\w\s\*:&<>\[\]]*", prefix) and "=" not in prefix:
+            return True
+
+    return False
+
+
+def _redact_model_unfriendly_text(value: str) -> str:
+    """Redact local/relative filesystem paths from tool outputs before LLM prompts."""
+    if not isinstance(value, str):
+        return value
+    redacted = re.sub(r"\.\./[^\s\"']+", "[redacted-path]", value)
+    redacted = re.sub(r"(?<![A-Za-z0-9_\-./])[A-Za-z0-9_./\-]+/[A-Za-z0-9_./\-]+", "[redacted-path]", redacted)
+    redacted = re.sub(r"\s+", " ", redacted).strip()
+    return redacted
+
+
+def _sanitize_tool_result_for_model(data):
+    """Recursively sanitize tool results before feeding them back into the model."""
+    if isinstance(data, dict):
+        return {k: _sanitize_tool_result_for_model(v) for k, v in data.items()}
+    if isinstance(data, list):
+        return [_sanitize_tool_result_for_model(item) for item in data]
+    if isinstance(data, str):
+        return _redact_model_unfriendly_text(data)
+    return data
 
 
 def _find_python_block_end(lines: list[str], start_idx: int) -> int:
@@ -222,7 +256,7 @@ def inspect_code_function(file_path: str, function_name: str) -> str:
     try:
         source = target_path.read_text(encoding="utf-8")
     except FileNotFoundError:
-        return json.dumps({"error": f"File not found: {target_path}"})
+        return json.dumps({"error": "Requested source file was not found."})
     except OSError as e:
         return json.dumps({"error": f"Failed reading file: {str(e)}"})
 
@@ -236,7 +270,7 @@ def inspect_code_function(file_path: str, function_name: str) -> str:
     if start_idx is None:
         return json.dumps(
             {
-                "error": f"Function '{function_name}' not found in {target_path}",
+                "error": f"Function '{function_name}' not found in requested file.",
             }
         )
 
@@ -260,7 +294,7 @@ def inspect_code_function(file_path: str, function_name: str) -> str:
     snippet = "\n".join(lines[start_idx:end_idx + 1])
     return json.dumps(
         {
-            "file_path": str(target_path),
+            "file_path": file_path,
             "function_name": function_name,
             "start_line": start_idx + 1,
             "end_line": end_idx + 1,
@@ -748,21 +782,22 @@ def run_agent_slice(commit_hash: str, commit_message: str):
         tool_call_count += 1
         tool_raw = TOOL_MAP[requested_tool](**requested_args)
         tool_json = _parse_tool_json(tool_raw)
+        safe_tool_json = _sanitize_tool_result_for_model(tool_json)
 
         reasoning_log.append(
             {
                 "loop": autonomous_loops,
                 "tool": requested_tool,
                 "args": requested_args,
-                "result": tool_json,
+                "result": safe_tool_json,
             }
         )
 
         if requested_tool == "mock_issue_lookup":
             ticket_id = str(requested_args.get("ticket_id", "")).upper()
-            issue_details[ticket_id] = tool_json
+            issue_details[ticket_id] = safe_tool_json
         elif requested_tool == "inspect_code_function":
-            code_inspections.append(tool_json)
+            code_inspections.append(safe_tool_json)
 
     valid_action, action_errors = _validate_final_action(final_action)
 
